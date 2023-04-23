@@ -1,0 +1,210 @@
+version: '3'
+services:
+
+## Router
+  routeur01:
+    image: mongo:4.0.4
+    container_name: cont_routeur01
+    command: mongos --port 27017 --configdb rs-config-server/configserveur01:27017,configserveur02:27017,configserveur03:27017,configserveur04:27017,configserveur05:27017 --bind_ip_all
+    ports:
+      - 27117:27017
+    restart: always
+    volumes:
+      - ./scripts:/scripts
+      - mongodb_cluster_routeur01_db:/data/db
+      - mongodb_cluster_routeur01_config:/data/configdb
+  routeur02:
+    image: mongo:4.0.4
+    container_name: cont_routeur02
+    command: mongos --port 27017 --configdb rs-config-server/configserveur01:27017,configserveur02:27017,configserveur03:27017,configserveur04:27017,configserveur05:27017 --bind_ip_all
+    volumes:
+      - ./scripts:/scripts
+      - mongodb_cluster_routeur02_db:/data/db
+      - mongodb_cluster_routeur02_config:/data/configdb
+    ports:
+      - 27118:27017
+    restart: always
+    links:
+      - routeur01
+
+## Configurations des Serveur
+  configserveur01:
+    image: mongo:4.0.4
+    container_name: mongo-config-01 
+    command: mongod --port 27017 --configsvr --replSet rs-config-server
+    volumes:
+      - ./scripts:/scripts 
+      - mongodb_cluster_configserveur01_db:/data/db
+      - mongodb_cluster_configserveur01_config:/data/configdb
+    ports:
+      - 27119:27017
+    restart: always
+    links:
+      - shard01-a
+
+  configserveur02:
+    image: mongo:4.0.4
+    container_name: mongo-config-02 
+    command: mongod --port 27017 --configsvr --replSet rs-config-server
+    volumes:
+      - ./scripts:/scripts
+      - mongodb_cluster_configserveur02_db:/data/db
+      - mongodb_cluster_configserveur02_config:/data/configdb
+    ports:
+      - 27120:27017
+    restart: always
+    links:
+      - configserveur01
+
+  configserveur03:
+    image: mongo:4.0.4
+    container_name: mongo-config-03 
+    command: mongod --port 27017 --configsvr --replSet rs-config-server
+    volumes:
+      - ./scripts:/scripts
+      - mongodb_cluster_configserveur03_db:/data/db
+      - mongodb_cluster_configserveur03_config:/data/configdb
+    ports:
+      - 27121:27017
+    restart: always
+    links:
+      - configserveur02
+
+  configserveur04:
+    image: mongo:4.0.4
+    container_name: mongo-config-04 
+    command: mongod --port 27017 --configsvr --replSet rs-config-server
+    volumes:
+      - ./scripts:/scripts
+      - mongodb_cluster_configserveur04_db:/data/db
+      - mongodb_cluster_configserveur04_config:/data/configdb
+    ports:
+      - 27122:27017
+    restart: always
+    links:
+      - configserveur03
+
+  configserveur05:
+    image: mongo:4.0.4
+    container_name: mongo-config-05 
+    command: mongod --port 27017 --configsvr --replSet rs-config-server
+    volumes:
+      - ./scripts:/scripts
+      - mongodb_cluster_configserveur05_db:/data/db
+      - mongodb_cluster_configserveur05_config:/data/configdb
+    ports:
+      - 27123:27017
+    restart: always
+    links:
+      - configserveur04
+
+
+
+## Shards
+  ## Shards 01
+   
+  shard01-a:
+    image: mongo:4.0.4
+    container_name: shard-01-node-a
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-01
+    volumes:
+      - ./scripts:/scripts
+      - mongodb_cluster_shard01_a_db:/data/db
+      - mongodb_cluster_shard01_a_config:/data/configdb
+    ports:
+      - 27124:27017
+    restart: always
+    links:
+      - shard01-b
+      - shard01-c
+      - shard01-d
+      - shard01-e
+  shard01-b:
+    image: mongo:4.0.4
+    container_name: shard-01-node-b
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-01
+    volumes:
+      - ./scripts:/scripts
+      - mongodb_cluster_shard01_b_db:/data/db
+      - mongodb_cluster_shard01_b_config:/data/configdb
+    ports:
+      - 27125:27017
+    restart: always
+  shard01-c:
+    image: mongo:4.0.4
+    container_name: shard-01-node-c
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-01
+    volumes:
+      - ./scripts:/scripts
+      - mongodb_cluster_shard01_c_db:/data/db
+      - mongodb_cluster_shard01_c_config:/data/configdb
+    ports:
+      - 27126:27017
+    restart: always
+
+  shard01-d:
+    image: mongo:4.0.4
+    container_name: shard-01-node-d
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-01
+    volumes:
+      - ./scripts:/scripts
+      - mongodb_cluster_shard01_d_db:/data/db
+      - mongodb_cluster_shard01_d_config:/data/configdb
+    ports:
+      - 27127:27017
+    restart: always
+
+  shard01-e:
+    image: mongo:4.0.4
+    container_name: shard-01-node-e
+    command: mongod --port 27017 --shardsvr --replSet rs-shard-01
+    volumes:
+      - ./scripts:/scripts
+      - mongodb_cluster_shard01_e_db:/data/db
+      - mongodb_cluster_shard01_e_config:/data/configdb
+    ports:
+      - 27129:27017
+    restart: always
+
+  
+
+volumes:
+  mongodb_cluster_routeur01_db:
+  mongodb_cluster_routeur01_config:
+  
+  mongodb_cluster_routeur02_db:
+  mongodb_cluster_routeur02_config:
+  
+  mongodb_cluster_configserveur01_db:
+  mongodb_cluster_configserveur01_config:
+  
+  mongodb_cluster_configserveur02_db:
+  mongodb_cluster_configserveur02_config:
+  
+  mongodb_cluster_configserveur03_db:
+  mongodb_cluster_configserveur03_config:
+
+  mongodb_cluster_configserveur04_db:
+  mongodb_cluster_configserveur04_config:
+
+  mongodb_cluster_configserveur05_db:
+  mongodb_cluster_configserveur05_config:
+  
+  
+  
+  mongodb_cluster_shard01_a_db:
+  mongodb_cluster_shard01_a_config:
+  
+  mongodb_cluster_shard01_b_db:
+  mongodb_cluster_shard01_b_config:
+  
+  mongodb_cluster_shard01_c_db:
+  mongodb_cluster_shard01_c_config:
+
+  mongodb_cluster_shard01_d_db:
+  mongodb_cluster_shard01_d_config:
+
+  mongodb_cluster_shard01_e_db:
+  mongodb_cluster_shard01_e_config:
+  
+  
